@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* ================= อนิเมชันพื้นหลัง & ดาวตก ================= */
+        body {
+            margin: 0;
+            padding: 20px 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fdf2f8, #fce7f3, #fbcfe8, #fdf2f8);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .meteor-shower {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .meteor {
+            position: absolute;
+            width: 150px;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(219,39,119,0.8));
+            transform: rotate(-45deg);
+            animation: meteor-fall linear infinite;
+            opacity: 0;
+        }
+
+        .meteor::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -2px;
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #be185d, 0 0 20px #db2777;
+        }
+
+        @keyframes meteor-fall {
+            0% { transform: scale(0) rotate(-45deg) translate(0, 0); opacity: 1; }
+            20% { opacity: 1; }
+            100% { transform: scale(1) rotate(-45deg) translate(-1000px, 1000px); opacity: 0; }
+        }
+
+        /* สุ่มตำแหน่งและความเร็วดาวตก */
+        .meteor:nth-child(1) { top: -20%; left: 80%; animation-duration: 3s; animation-delay: 0s; }
+        .meteor:nth-child(2) { top: 10%; left: 100%; animation-duration: 4s; animation-delay: 1.5s; }
+        .meteor:nth-child(3) { top: -10%; left: 50%; animation-duration: 3.5s; animation-delay: 2.5s; }
+        .meteor:nth-child(4) { top: 30%; left: 120%; animation-duration: 4.5s; animation-delay: 0.8s; }
+        .meteor:nth-child(5) { top: -30%; left: 90%; animation-duration: 3.2s; animation-delay: 3s; }
+        .meteor:nth-child(6) { top: 40%; left: 80%; animation-duration: 5s; animation-delay: 1.2s; }
+
+        /* ================= ดีไซน์การ์ดคำนวณ ================= */
+        .bmr-card { 
+            position: relative;
+            z-index: 1;
+            max-width: 500px; 
+            margin: 0 auto; 
+            padding: 30px 25px; 
+            /* ทำพื้นหลังให้เป็นกระจกใส (Glassmorphism) */
+            background: rgba(255, 255, 255, 0.90); 
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(251, 207, 232, 0.8); 
+            border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(219,39,119,0.15); 
+        }
+
+        h3 { color: #be185d; text-align: center; margin-top: 0; margin-bottom: 25px; font-size: 24px; text-shadow: 0 2px 4px rgba(219,39,119,0.1); }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; color: #831843; margin-bottom: 5px; font-size: 14px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #fbcfe8; border-radius: 10px; box-sizing: border-box; background: #fff5f7; outline: none; transition: 0.3s; }
+        input:focus, select:focus { border-color: #db2777; box-shadow: 0 0 0 3px rgba(219,39,119,0.1); }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-primary { flex: 2; padding: 15px; background: linear-gradient(135deg, #db2777, #be185d); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(219,39,119,0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(219,39,119,0.4); }
+        .btn-secondary { flex: 1; padding: 15px; background: rgba(252, 231, 243, 0.8); color: #db2777; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .btn-secondary:hover { background: #fbcfe8; }
+        
+        #result-box { display: none; margin-top: 25px; animation: fadeIn 0.6s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .status-box { background: rgba(248, 250, 252, 0.9); border-left: 5px solid #cbd5e1; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: left; }
+        .bmi-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; color: white; font-weight: bold; font-size: 12px; margin-left: 5px; vertical-align: middle; }
+        .summary-box { background: rgba(252, 231, 243, 0.9); padding: 15px; border-radius: 10px; text-align: center; color: #9d174d; margin-bottom: 15px; }
+        .warning { font-size: 12px; color: #e11d48; margin-top: 5px; font-weight: bold; }
+        
+        .plan-card { border: 1px solid rgba(251, 207, 232, 0.8); padding: 18px; border-radius: 12px; margin-bottom: 15px; background: rgba(255, 255, 255, 0.95); box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .plan-title { font-weight: bold; font-size: 16px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #fce7f3; }
+        .plan-loss { color: #db2777; }
+        .plan-gain { color: #0284c7; }
+        .macro-list { font-size: 13px; color: #444; line-height: 1.7; padding-left: 0; list-style: none; margin: 0; }
+        .macro-list li { margin-bottom: 8px; }
+        .highlight { font-weight: bold; color: #be185d; }
+        
+        .water-box { background: rgba(224, 242, 254, 0.9); color: #0369a1; padding: 15px; border-radius: 10px; font-size: 14px; text-align: center; font-weight: 600; margin-bottom: 15px; }
+        .disclaimer { font-size: 11px; color: #888; text-align: center; margin-top: 20px; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+<!-- เอฟเฟกต์ดาวตก -->
+<div class="meteor-shower">
+    <div class="meteor"></div>
+    <div class="meteor"></div>
+    <div class="meteor"></div>
+    <div class="meteor"></div>
+    <div class="meteor"></div>
+    <div class="meteor"></div>
+</div>
+
+<!-- กล่องคำนวณ -->
+<div class="bmr-card">
+    <h3>✨ ระบบคำนวณ BMR & โภชนาการ</h3>
+    
+    <div class="input-group"><label>เพศ</label><select id="gender"><option value="male">ชาย</option><option value="female">หญิง</option></select></div>
+    <div class="input-group"><label>น้ำหนัก (kg)</label><input type="number" id="weight" placeholder="เช่น 60"></div>
+    <div class="input-group"><label>ส่วนสูง (cm)</label><input type="number" id="height" placeholder="เช่น 165"></div>
+    <div class="input-group"><label>อายุ (ปี)</label><input type="number" id="age" placeholder="เช่น 25"></div>
+    <div class="input-group"><label>ระดับกิจกรรม</label><select id="activity">
+        <option value="1.2">ไม่ออกกำลังกายเลย (นั่งทำงานโต๊ะ)</option>
+        <option value="1.375">ออกกำลังกายเบาๆ (1-3 วัน/สัปดาห์)</option>
+        <option value="1.55">ออกกำลังกายปานกลาง (3-5 วัน/สัปดาห์)</option>
+        <option value="1.725">ออกกำลังกายหนัก (6-7 วัน/สัปดาห์)</option>
+    </select></div>
+    
+    <div class="btn-group">
+        <button class="btn-primary" onclick="calculatePlan()">✨ ประมวลผล</button>
+        <button class="btn-secondary" onclick="resetForm()">เริ่มใหม่</button>
+    </div>
+
+    <div id="result-box">
+        <!-- สถานะร่างกาย (BMI) -->
+        <div class="status-box" id="status-box">
+            <div style="font-size: 15px; font-weight: bold; color: #334155; margin-bottom: 5px;">
+                📊 สถานะร่างกาย (BMI): <span id="bmi-value"></span> <span id="bmi-badge" class="bmi-badge"></span>
+            </div>
+            <div style="font-size: 13px; color: #475569;" id="bmi-recommendation"></div>
+        </div>
+
+        <div class="summary-box">
+            <div style="font-size: 18px; font-weight: bold;" id="tdee-text"></div>
+            <div style="font-size: 14px; margin-top: 5px;" id="bmr-text"></div>
+            <div class="warning">⚠️ กฎเหล็ก: ห้ามทานต่ำกว่าค่า BMR ของตัวเองเด็ดขาด</div>
+        </div>
+
+        <!-- ปริมาณน้ำดื่ม -->
+        <div class="water-box">
+            💧 ปริมาณน้ำที่ร่างกายคุณต้องการ: <span id="water-text" style="font-size: 16px; font-weight: bold;"></span> ลิตร/วัน
+        </div>
+
+        <!-- แผนลดน้ำหนัก -->
+        <div class="plan-card" id="card-loss">
+            <div class="plan-title plan-loss">🔥 แผนสำหรับ "ลดไขมัน / ลดน้ำหนัก"</div>
+            <div id="loss-plan" class="macro-list"></div>
+        </div>
+
+        <!-- แผนเพิ่มน้ำหนัก -->
+        <div class="plan-card" id="card-gain">
+            <div class="plan-title plan-gain">💪 แผนสำหรับ "เพิ่มกล้ามเนื้อ / เพิ่มน้ำหนัก"</div>
+            <div id="gain-plan" class="macro-list"></div>
+        </div>
+        
+        <div class="disclaimer">
+            * ข้อมูลนี้เป็นการคำนวณเบื้องต้นตามหลักโภชนาการสากล หากมีโรคประจำตัว ควรปรึกษาแพทย์หรือนักโภชนาการก่อนปรับเปลี่ยนพฤติกรรมการกิน
+        </div>
+    </div>
+</div>
+
+<script>
+function calculatePlan() {
+    const weight = parseFloat(document.getElementById('weight').value);
+    const height = parseFloat(document.getElementById('height').value);
+    const age = parseFloat(document.getElementById('age').value);
+    const gender = document.getElementById('gender').value;
+    const activity = parseFloat(document.getElementById('activity').value);
+
+    if (!weight || !height || !age) { alert("กรุณากรอกข้อมูล น้ำหนัก ส่วนสูง และอายุ ให้ครบถ้วนครับ"); return; }
+
+    // 1. คำนวณ BMI
+    let height_m = height / 100;
+    let bmi = weight / (height_m * height_m);
+    let bmi_category = "";
+    let bmi_color = "";
+    let recommendation = "";
+
+    if (bmi < 18.5) { 
+        bmi_category = "น้ำหนักน้อย / ผอม"; bmi_color = "#3b82f6";
+        recommendation = "💡 คำแนะนำ: คุณควรโฟกัสที่ <b>แผนเพิ่มกล้ามเนื้อ</b> เพื่อสุขภาพที่แข็งแรงขึ้น";
+    } else if (bmi < 23) { 
+        bmi_category = "ปกติ / สมส่วน"; bmi_color = "#22c55e";
+        recommendation = "💡 คำแนะนำ: ยอดเยี่ยม! คุณสามารถเลือก <b>รักษาน้ำหนัก</b> หรือสร้างกล้ามเนื้อเพิ่มได้";
+    } else if (bmi < 25) { 
+        bmi_category = "ท้วม / น้ำหนักเกิน"; bmi_color = "#eab308";
+        recommendation = "💡 คำแนะนำ: คุณควรโฟกัสที่ <b>แผนลดไขมัน</b> เพื่อให้กลับมาอยู่ในเกณฑ์สมส่วน";
+    } else if (bmi < 30) { 
+        bmi_category = "อ้วนระดับ 1"; bmi_color = "#f97316";
+        recommendation = "💡 คำแนะนำ: คุณควรโฟกัสที่ <b>แผนลดไขมัน</b> อย่างจริงจังเพื่อสุขภาพที่ดีระยะยาว";
+    } else { 
+        bmi_category = "อ้วนระดับ 2 (อันตราย)"; bmi_color = "#ef4444";
+        recommendation = "💡 คำแนะนำ: แนะนำให้เริ่ม <b>แผนลดไขมัน</b> และควรปรึกษาแพทย์ควบคู่ไปด้วยครับ";
+    }
+
+    // 2. คำนวณ BMR & TDEE
+    let bmr = (gender === 'male') ? (10 * weight) + (6.25 * height) - (5 * age) + 5 : (10 * weight) + (6.25 * height) - (5 * age) - 161;
+    let tdee = bmr * activity;
+
+    // 3. คำนวณปริมาณน้ำดื่ม
+    let water_liters = (weight * 33) / 1000;
+
+    // 4. คำนวณสารอาหาร
+    let protein_g = Math.round(weight * 1.8);
+    let meat_khid = (protein_g / 22).toFixed(1);
+
+    // แผนลดน้ำหนัก
+    let target_loss = Math.round(tdee - 500);
+    if (target_loss < bmr) target_loss = Math.round(bmr); 
+    let fat_loss_g = Math.round((target_loss * 0.25) / 9);
+    let carb_loss_g = Math.round((target_loss - (protein_g * 4) - (fat_loss_g * 9)) / 4);
+    let rice_loss = Math.round(carb_loss_g / 18);
+
+    // แผนเพิ่มน้ำหนัก
+    let target_gain = Math.round(tdee + 400);
+    let fat_gain_g = Math.round((target_gain * 0.25) / 9);
+    let carb_gain_g = Math.round((target_gain - (protein_g * 4) - (fat_gain_g * 9)) / 4);
+    let rice_gain = Math.round(carb_gain_g / 18);
+
+    // ================= แสดงผล =================
+    document.getElementById('result-box').style.display = 'block';
+    
+    document.getElementById('bmi-value').innerText = bmi.toFixed(1);
+    document.getElementById('bmi-badge').innerText = bmi_category;
+    document.getElementById('bmi-badge').style.backgroundColor = bmi_color;
+    document.getElementById('status-box').style.borderLeftColor = bmi_color;
+    document.getElementById('bmi-recommendation').innerHTML = recommendation;
+
+    document.getElementById('tdee-text').innerHTML = `ร่างกายเผาผลาญรวม: ${Math.round(tdee)} kcal/วัน (TDEE)`;
+    document.getElementById('bmr-text').innerHTML = `พลังงานขั้นต่ำที่ต้องใช้: ${Math.round(bmr)} kcal/วัน (BMR)`;
+    document.getElementById('water-text').innerText = water_liters.toFixed(1);
+
+    document.getElementById('loss-plan').innerHTML = `
+        <li>🎯 <strong>เป้าหมายการกิน:</strong> <span class="highlight">${target_loss} kcal/วัน</span></li>
+        <li>🥩 <strong>โปรตีน (${protein_g}g):</strong> เนื้อสัตว์รวม <span class="highlight">${meat_khid} ขีด/วัน</span> (หรือไข่ ${Math.round(protein_g/7)} ฟอง)</li>
+        <li>🍚 <strong>คาร์โบไฮเดรต (${carb_loss_g}g):</strong> ข้าวสวยรวม <span class="highlight">${rice_loss} ทัพพี/วัน</span></li>
+        <li>🥑 <strong>ไขมันดี (${fat_loss_g}g):</strong> น้ำมันทำอาหารไม่เกิน 2-3 ช้อนโต๊ะ</li>
+    `;
+
+    document.getElementById('gain-plan').innerHTML = `
+        <li>🎯 <strong>เป้าหมายการกิน:</strong> <span class="highlight">${target_gain} kcal/วัน</span></li>
+        <li>🥩 <strong>โปรตีน (${protein_g}g):</strong> เนื้อสัตว์รวม <span class="highlight">${meat_khid} ขีด/วัน</span></li>
+        <li>🍚 <strong>คาร์โบไฮเดรต (${carb_gain_g}g):</strong> ข้าวสวยรวม <span class="highlight">${rice_gain} ทัพพี/วัน</span></li>
+        <li>🥑 <strong>ไขมันดี (${fat_gain_g}g):</strong> เพิ่มไขมันดีจากถั่วหรืออะโวคาโด</li>
+    `;
+    
+    // เลื่อนหน้าจอลงมาที่ผลลัพธ์อัตโนมัติ
+    setTimeout(() => {
+        document.getElementById('result-box').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+}
+
+function resetForm() {
+    document.getElementById('weight').value = '';
+    document.getElementById('height').value = '';
+    document.getElementById('age').value = '';
+    document.getElementById('gender').value = 'male';
+    document.getElementById('activity').value = '1.2';
+    document.getElementById('result-box').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>
